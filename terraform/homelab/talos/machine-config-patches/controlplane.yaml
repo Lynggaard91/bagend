@@ -1,0 +1,25 @@
+# Control Plane Node Configuration
+#
+# Settings specific to control plane nodes only.
+
+cluster:
+  # API Server certificate SANs
+  apiServer:
+    certSANs:
+      - 127.0.0.1
+      - 192.168.1.15
+      - controlplane.bagend.lynggaardjensen.com
+      - kubernetes.bagend.lynggaardjensen.com
+
+  # Network configuration
+  network:
+    # Disable default CNI.
+    cni:
+      name: none
+
+  # Disable kube-proxy (Cilium handles this)
+  proxy:
+    disabled: true
+
+  # Allow pods on control plane nodes (for single node or small clusters)
+  allowSchedulingOnControlPlanes: true
