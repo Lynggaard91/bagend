@@ -1,0 +1,27 @@
+repos:
+# BASIC CONF FOR ALL PRE-COMMITS REPO TYPE
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        stages: [pre-commit]
+      - id: end-of-file-fixer
+        exclude: /secrets
+        stages: [pre-commit]
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.0
+    hooks:
+      - id: gitleaks
+
+# SPECIFIC CONF FOR TERRAFORM MODULE REPOSITORIES
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.96.1
+    hooks:
+      - id: terraform_fmt
+        args:
+        - --args=-diff
+        - --args=-write=true
+        stages: [pre-commit]
+      #- id: terraform_docs
+      #  args:
+      #  - --args=--config=.terraform-docs.yml
