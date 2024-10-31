@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 4.2"
+      version = ">= 5.73"
     }
   }
   backend "s3" {
@@ -24,7 +24,6 @@ provider "aws" {
     tags = {
       env       = "bagend"
       terraform = "true"
-      pattern   = "dns"
     }
   }
 }
