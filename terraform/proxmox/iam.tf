@@ -1,11 +1,16 @@
-data "aws_iam_policy_document" "route53_lynggaardjensen_access" {
+data "aws_iam_policy_document" "route53_user_pol" {
   statement {
-    sid       = "Route53Change"
-    effect    = "Allow"
-    resources = ["arn:aws:route53:::change/*"]
+    sid    = "Route53ChangeAndListRecords"
+    effect = "Allow"
+
+    resources = [
+      "arn:aws:route53:::change/*",
+      "arn:aws:route53:::hostedzone/*",
+    ]
 
     actions = [
-      "route53:GetChange"
+      "route53:GetChange",
+      "route53:ListResourceRecordSets",
     ]
   }
   statement {
@@ -15,6 +20,7 @@ data "aws_iam_policy_document" "route53_lynggaardjensen_access" {
 
     actions = [
       "route53:ListHostedZonesByName",
+      "route53:ListHostedZones",
     ]
   }
   statement {
@@ -24,23 +30,29 @@ data "aws_iam_policy_document" "route53_lynggaardjensen_access" {
 
     actions = [
       "route53:ChangeResourceRecordSets",
-      "route53:ListResourceRecordSets"
     ]
+    condition {
+      test     = "ForAllValues:StringEquals"
+      variable = "route53:ChangeResourceRecordSetsRecordTypes"
+      values = [
+        "TXT",
+      ]
+    }
   }
 }
 
-module "user_externaldns" {
+module "user_proxmox" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-user"
   version = ">= 5"
 
-  name                          = "bagend-externaldns"
+  name                          = "bagend-proxmox"
   create_iam_user_login_profile = false
   create_iam_access_key         = true
 }
 
-resource "aws_iam_user_policy" "externaldns_inline_pol" {
-  name = "route53-lynggaardjensencom"
-  user = module.user_externaldns.iam_user_name
+resource "aws_iam_user_policy" "bagend-proxmox-route53" {
+  name = "bagend-proxmox-route53"
+  user = module.user_proxmox.iam_user_name
 
-  policy = data.aws_iam_policy_document.route53_lynggaardjensen_access.json
+  policy = data.aws_iam_policy_document.route53_user_pol.json
 }
