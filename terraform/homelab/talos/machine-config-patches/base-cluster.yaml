@@ -1,0 +1,16 @@
+# Base Cluster Configuration for Bagend
+#
+# Common settings applied to ALL nodes (both control plane and worker).
+
+machine:
+  install:
+    disk: /dev/sda
+    image: ${talos_imagefactory_image}
+---
+apiVersion: v1alpha1
+kind: ResolverConfig
+nameservers:
+  - address: 192.168.1.3
+searchDomains:
+  domains:
+    - bagend.lynggaardjensen.com
