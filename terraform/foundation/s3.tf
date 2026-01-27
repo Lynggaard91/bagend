@@ -1,6 +1,5 @@
 module "terraform_state_backend" {
-  source         = "cloudposse/tfstate-backend/aws"
-  version        = "1.5.0"
+  source         = "git::https://github.com/cloudposse/terraform-aws-tfstate-backend?ref=v1.8.0"
   s3_bucket_name = "bagend-tfstate"
 
   terraform_backend_config_file_path = "."

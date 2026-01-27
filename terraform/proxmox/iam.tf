@@ -42,17 +42,16 @@ data "aws_iam_policy_document" "route53_user_pol" {
 }
 
 module "user_proxmox" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-user"
-  version = ">= 5"
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-iam//modules/iam-user?ref=v6.4.0"
 
-  name                          = "bagend-proxmox"
-  create_iam_user_login_profile = false
-  create_iam_access_key         = true
+  name                 = "bagend-proxmox"
+  create_login_profile = false
+  create_access_key    = true
 }
 
 resource "aws_iam_user_policy" "bagend-proxmox-route53" {
   name = "bagend-proxmox-route53"
-  user = module.user_proxmox.iam_user_name
+  user = module.user_proxmox.name
 
   policy = data.aws_iam_policy_document.route53_user_pol.json
 }
