@@ -1,3 +1,82 @@
-#terraform
-.terraform
+#KubeConfig
+kubeconfig
+talosconfig
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
 .terraform.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Kubernetes
+**/charts/*
+kubeconfig
+*.kubeconfig
+*kubeconfig*.yaml
+*kubeconfig*.yml
+
+# Secrets and sensitive files
+**/.ssh
+*.pem
+*.key
+*.crt
+secrets/
+secrets.yaml
+*-secret.yaml
+*.env
+.env
+.env.*
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
