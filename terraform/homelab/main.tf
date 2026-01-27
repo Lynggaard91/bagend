@@ -9,6 +9,14 @@ terraform {
       version = ">=0.9"
     }
   }
+  backend "s3" {
+    region         = "eu-west-1"
+    bucket         = "bagend-tfstate"
+    key            = "bagend/homelab/terraform.tfstate"
+    profile        = "bagend"
+    encrypt        = "true"
+    dynamodb_table = "lock"
+  }
 }
 
 provider "proxmox" {
