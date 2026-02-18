@@ -53,14 +53,14 @@ variable "nodes" {
 
     extra_disks = optional(any, [])
 
-  }))
-}
+    boot_image = optional(object({
+      url       = string
+      file_name = string
+    }))
 
-variable "boot_image" {
-  description = "Boot image configuration for VMs (optional)"
-  type = object({
-    url       = string
-    file_name = string
-  })
-  default = null
+    # Talos fields (passed through, not used by this module)
+    machine_type   = optional(string)
+    config_patches = optional(list(string), [])
+
+  }))
 }

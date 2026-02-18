@@ -102,17 +102,22 @@ resource "proxmox_virtual_environment_vm" "this" {
       xvga    = false
     }
   }
+
+  lifecycle {
+    # The ISO file_id is only needed for initial provisioning.
+    ignore_changes = [disk]
+  }
 }
 
-# Download boot image per VM
+# Download boot image per VM (only for nodes that define one)
 resource "proxmox_virtual_environment_download_file" "this" {
-  for_each = var.boot_image != null ? var.nodes : {}
+  for_each = { for k, v in var.nodes : k => v if v.boot_image != null }
 
   node_name    = each.value.hostname
   content_type = "iso"
   datastore_id = each.value.datastore_id_images
 
-  file_name = var.boot_image.file_name
-  url       = var.boot_image.url
+  file_name = each.value.boot_image.file_name
+  url       = each.value.boot_image.url
   overwrite = true
 }

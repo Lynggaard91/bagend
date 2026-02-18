@@ -1,12 +1,6 @@
 variable "nodes" {
   description = "Map of Talos nodes to configure with machine type and optional config patches"
-  type = map(object({
-    ip             = string
-    machine_type   = string # "controlplane" or "worker"
-    config_patches = optional(list(string), [])
-    install_disk   = optional(string, "/dev/sda")
-    install_image  = optional(string)
-  }))
+  type        = any
 }
 
 variable "cluster" {

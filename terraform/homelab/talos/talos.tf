@@ -1,8 +1,8 @@
 locals {
-  # Get node IPs
-  all_node_ips     = [for n in var.nodes : n.ip]
-  controlplane_ips = [for n in var.nodes : n.ip if n.machine_type == "controlplane"]
-  worker_ips       = [for n in var.nodes : n.ip if n.machine_type == "worker"]
+  # Get node IPs (strip CIDR prefix if present)
+  all_node_ips     = [for n in var.nodes : split("/", n.ip)[0]]
+  controlplane_ips = [for n in var.nodes : split("/", n.ip)[0] if n.machine_type == "controlplane"]
+  worker_ips       = [for n in var.nodes : split("/", n.ip)[0] if n.machine_type == "worker"]
 
   # First control plane IP for bootstrap
   bootstrap_node_ip = one(local.controlplane_ips)
@@ -43,13 +43,13 @@ data "talos_machine_configuration" "this" {
 
 # Wait for machines to reboot and become ready after config apply
 resource "time_sleep" "wait_for_machine_first_boot" {
-  create_duration = "2m"
+  create_duration = "3m"
 }
 
 resource "talos_machine_configuration_apply" "this" {
   for_each = var.nodes
 
-  node                        = each.value.ip
+  node                        = split("/", each.value.ip)[0]
   client_configuration        = talos_machine_secrets.this.client_configuration
   machine_configuration_input = data.talos_machine_configuration.this[each.key].machine_configuration
 
@@ -98,14 +98,3 @@ resource "local_file" "cilium_helm_values" {
   filename        = "${path.cwd}/kubernetes/cilium/helm-values.yaml"
   file_permission = "0644"
 }
-
-# Health check 2: Wait for cluster to be healthy after config apply
-# Won't work without a CNI present
-# data "talos_cluster_health" "after_config_apply" {
-#   client_configuration = data.talos_client_configuration.this.client_configuration
-#   control_plane_nodes  = local.controlplane_ips
-#   worker_nodes         = local.worker_ips
-#   endpoints            = [var.cluster.endpoint]
-
-#   depends_on = [time_sleep.wait_for_cluster_ready]
-# }

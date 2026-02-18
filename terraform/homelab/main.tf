@@ -1,41 +1,59 @@
-terraform {
-  required_providers {
-    proxmox = {
-      source  = "bpg/proxmox"
-      version = ">=0.82"
-    }
-    talos = {
-      source  = "siderolabs/talos"
-      version = ">=0.9"
-    }
-  }
-  backend "s3" {
-    region         = "eu-west-1"
-    bucket         = "bagend-tfstate"
-    key            = "bagend/homelab/terraform.tfstate"
-    profile        = "bagend"
-    encrypt        = "true"
-    dynamodb_table = "lock"
-  }
-}
-
-provider "proxmox" {
-  endpoint  = local.proxmox.endpoint
-  api_token = local.proxmox.api_token
-
-  ssh {
-    agent       = true
-    username    = local.proxmox.username
-    private_key = file("~/.ssh/proxmox")
-  }
-}
-
-# Talos Image Factory Configuration
 locals {
+  proxmox = {
+    cluster_name = "bagend"
+    endpoint     = "https://pve1.bagend.lynggaardjensen.com:8006/"
+    insecure     = false
+    username     = "root"
+    api_token    = var.proxmox_api_token
+  }
+
   talos_version      = "v1.12.0"
   talos_platform     = "nocloud"
   talos_architecture = "amd64"
   talos_extensions   = ["intel-ucode", "qemu-guest-agent", "iscsi-tools"]
+
+  # Canonical node definitions — single source of truth for all modules
+  nodes = {
+    controlplane-01 = {
+      # Proxmox VM fields
+      hostname      = "pve1"
+      ip            = "192.168.1.15/24"
+      gateway_ip    = "192.168.1.1"
+      vm_id         = 201
+      cpu           = 2
+      ram_dedicated = 2048
+      boot_disk = {
+        size = 10
+      }
+      efi_disk_enabled = true
+      boot_image = {
+        url       = data.talos_image_factory_urls.this.urls.iso
+        file_name = "talos-${local.talos_version}-${local.talos_platform}-${local.talos_architecture}.iso"
+      }
+      # Talos fields
+      machine_type = "controlplane"
+      config_patches = [
+        file("${path.module}/talos/machine-config-patches/controlplane.yaml")
+      ]
+    }
+    worker-01 = {
+      # Proxmox VM fields
+      hostname      = "pve1"
+      ip            = "192.168.1.16/24"
+      gateway_ip    = "192.168.1.1"
+      vm_id         = 202
+      cpu           = 2
+      ram_dedicated = 1024
+      boot_disk = {
+        size = 10
+      }
+      efi_disk_enabled = true
+      boot_image       = null
+      # Talos fields
+      machine_type   = "worker"
+      config_patches = []
+    }
+  }
 }
 
 data "talos_image_factory_extensions_versions" "this" {
@@ -64,58 +82,20 @@ data "talos_image_factory_urls" "this" {
   architecture  = local.talos_architecture
 }
 
-locals {
-  proxmox = {
-    cluster_name = "bagend"
-    endpoint     = "https://pve1.bagend.lynggaardjensen.com:8006/"
-    insecure     = false
-    username     = "root"
-    api_token    = "root@pam!tf=315fa490-759e-489b-aa33-b80b2d99f440"
-  }
 
-  # Infrastructure (Proxmox VM) definitions
-  proxmox_nodes = {
-    controlplane-01 = {
-      hostname      = "pve1"
-      ip            = "192.168.1.15/24"
-      gateway_ip    = "192.168.1.1"
-      vm_id         = 201
-      cpu           = 2
-      ram_dedicated = 2048
-      boot_disk = {
-        size = 10
-      }
-      efi_disk_enabled = true
-    }
-  }
-
-  # Talos-specific node configurations
-  talos_nodes = {
-    controlplane-01 = {
-      ip           = "192.168.1.15"
-      machine_type = "controlplane"
-      config_patches = [
-        file("${path.module}/talos/machine-config-patches/controlplane.yaml")
-      ]
-    }
-  }
-}
 
 module "vms_talos" {
   source = "./proxmox_vm"
 
-  nodes = local.proxmox_nodes
-
-  boot_image = {
-    url       = data.talos_image_factory_urls.this.urls.iso
-    file_name = "talos-${local.talos_version}-${local.talos_platform}-${local.talos_architecture}.iso"
-  }
+  nodes = local.nodes
 }
 
 module "talos_cluster" {
   source = "./talos"
 
-  nodes = local.talos_nodes
+  depends_on = [module.vms_talos]
+
+  nodes = local.nodes
 
   cluster = {
     name     = "bagend"
@@ -132,6 +112,4 @@ module "talos_cluster" {
   kubernetes_version = "1.35.0"
 
   proxmox_vms = module.vms_talos.vms
-
-  depends_on = [module.vms_talos]
 }
