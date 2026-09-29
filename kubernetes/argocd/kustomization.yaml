@@ -1,0 +1,11 @@
+resources:
+  - namespace.yaml
+  - root-application.yaml
+helmCharts:
+  - name: argo-cd
+    repo: https://argoproj.github.io/argo-helm
+    version: 10.9.2
+    releaseName: argocd
+    namespace: argocd
+    includeCRDs: true
+    valuesFile: helm-values.yaml

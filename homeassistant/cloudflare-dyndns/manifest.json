@@ -1,0 +1,11 @@
+{
+  "domain": "cloudflare_dyndns",
+  "name": "Cloudflare DynDNS",
+  "codeowners": ["@lynggaard91"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://developers.cloudflare.com/api/",
+  "iot_class": "cloud_push",
+  "requirements": ["cryptography"],
+  "version": "2.0.0"
+}

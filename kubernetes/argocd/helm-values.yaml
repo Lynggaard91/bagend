@@ -1,0 +1,7 @@
+dex:
+  enabled: false
+notifications:
+  enabled: false
+configs:
+  cm:
+    kustomize.buildOptions: --enable-helm

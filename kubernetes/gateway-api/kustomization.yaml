@@ -1,0 +1,4 @@
+resources:
+  - application.yaml
+  - gatewayclass.yaml
+  - https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/standard-install.yaml

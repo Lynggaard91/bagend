@@ -1,0 +1,12 @@
+resources:
+  - application.yaml
+  - clustersecretstore.yaml
+  - clusterexternalsecret.yaml
+helmCharts:
+  - name: external-secrets
+    repo: https://charts.external-secrets.io
+    version: 2.11.0
+    releaseName: external-secrets
+    namespace: eso
+    includeCRDs: true
+    valuesFile: helm-values.yaml

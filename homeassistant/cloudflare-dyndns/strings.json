@@ -1,0 +1,47 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Cloudflare Authentication",
+        "description": "Enter your Cloudflare API Token. Ensure it has Zone:Zone:Read and Zone:DNS:Edit permissions.",
+        "data": {
+          "api_token": "Cloudflare API Token"
+        }
+      },
+      "zone_selection": {
+        "title": "Select Domain and Record",
+        "description": "Select the domain (zone) and enter the record name you want to update.",
+        "data": {
+          "zone_id": "Domain (Zone)",
+          "record_name": "Record Name (e.g., home.yourdomain.com)",
+          "ip_mode": "IP Mode",
+          "enable_proxy": "Enable Cloudflare Proxy"
+        },
+        "data_description": {
+          "enable_proxy": "Enables Cloudflare's orange-cloud proxy. Required for SSL. Without this, the integration only manages your DNS record."
+        }
+      },
+      "static_ip": {
+        "title": "Internal IP Address",
+        "data": {
+          "static_ip": "Static IP Address"
+        }
+      },
+      "cert_confirmation": {
+        "title": "Certificate Already Exists",
+        "description": "A certificate already exists at /ssl/fullchain.pem. Continuing will replace it.",
+        "data": {
+          "confirm_overwrite": "I understand, replace the existing certificate"
+        }
+      }
+    },
+    "error": {
+      "auth_failed": "Failed to authenticate. Check your token and permissions.",
+      "cannot_connect": "Failed to connect to the Cloudflare API.",
+      "no_zones": "No domains were found on this Cloudflare account.",
+      "proxy_entry_exists": "A proxied entry already exists. Only one proxied record is allowed.",
+      "nonproxy_entry_exists": "A non-proxied entry already exists. Only one non-proxied record is allowed.",
+      "confirm_required": "You must confirm to proceed."
+    }
+  }
+}
