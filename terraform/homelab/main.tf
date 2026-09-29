@@ -1,13 +1,13 @@
 locals {
   proxmox = {
     cluster_name = "bagend"
-    endpoint     = "https://pve1.bagend.lynggaardjensen.com:8006/"
+    endpoint     = "https://pve1.lynggaardjensen.com:8006/"
     insecure     = false
     username     = "root"
     api_token    = var.proxmox_api_token
   }
 
-  talos_version      = "v1.12.0"
+  talos_version      = "v1.14.1"
   talos_platform     = "nocloud"
   talos_architecture = "amd64"
   talos_extensions   = ["intel-ucode", "qemu-guest-agent", "iscsi-tools"]
@@ -16,11 +16,11 @@ locals {
   nodes = {
     controlplane-01 = {
       # Proxmox VM fields
-      hostname      = "pve1"
+      hostname      = "pve3"
       ip            = "192.168.1.15/24"
       gateway_ip    = "192.168.1.1"
-      vm_id         = 201
-      cpu           = 2
+      vm_id         = 203
+      cpu           = 4
       ram_dedicated = 2048
       boot_disk = {
         size = 10
@@ -29,6 +29,10 @@ locals {
       boot_image = {
         url       = data.talos_image_factory_urls.this.urls.iso
         file_name = "talos-${local.talos_version}-${local.talos_platform}-${local.talos_architecture}.iso"
+      }
+      agent = {
+        enabled = true
+        trim    = true
       }
       # Talos fields
       machine_type = "controlplane"
@@ -48,12 +52,20 @@ locals {
         size = 10
       }
       efi_disk_enabled = true
-      boot_image       = null
+      boot_image = {
+        url       = data.talos_image_factory_urls.this.urls.iso
+        file_name = "talos-${local.talos_version}-${local.talos_platform}-${local.talos_architecture}.iso"
+      }
+      agent = {
+        enabled = true
+        trim    = true
+      }
       # Talos fields
       machine_type   = "worker"
       config_patches = []
     }
   }
+
 }
 
 data "talos_image_factory_extensions_versions" "this" {
@@ -82,8 +94,6 @@ data "talos_image_factory_urls" "this" {
   architecture  = local.talos_architecture
 }
 
-
-
 module "vms_talos" {
   source = "./proxmox_vm"
 
@@ -99,7 +109,7 @@ module "talos_cluster" {
 
   cluster = {
     name     = "bagend"
-    endpoint = "192.168.1.15"
+    endpoint = "kubernetes.lynggaardjensen.com"
 
     config_patches = [
       templatefile("${path.module}/talos/machine-config-patches/base-cluster.yaml", {
@@ -109,7 +119,7 @@ module "talos_cluster" {
   }
 
   talos_version      = local.talos_version
-  kubernetes_version = "1.35.0"
+  kubernetes_version = "1.37.0"
 
   proxmox_vms = module.vms_talos.vms
 }

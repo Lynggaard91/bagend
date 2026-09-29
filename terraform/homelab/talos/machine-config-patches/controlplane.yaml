@@ -2,14 +2,21 @@
 #
 # Settings specific to control plane nodes only.
 
+machine:
+  certSANs:
+    - 127.0.0.1
+    - 192.168.1.15
+    - controlplane-01.lynggaardjensen.com
+    - kubernetes.lynggaardjensen.com
+
 cluster:
   # API Server certificate SANs
   apiServer:
     certSANs:
       - 127.0.0.1
       - 192.168.1.15
-      - controlplane.bagend.lynggaardjensen.com
-      - kubernetes.bagend.lynggaardjensen.com
+      - controlplane-01.lynggaardjensen.com
+      - kubernetes.lynggaardjensen.com
 
   # Network configuration
   network:

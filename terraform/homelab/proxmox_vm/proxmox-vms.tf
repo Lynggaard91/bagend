@@ -50,7 +50,7 @@ resource "proxmox_virtual_environment_vm" "this" {
       iothread     = disk.value.iothread
       replicate    = disk.value.replicate
       ssd          = disk.value.ssd
-      file_id      = try(proxmox_virtual_environment_download_file.this[each.key].id, disk.value.import_from)
+      file_id      = try(proxmox_virtual_environment_download_file.this["${each.value.hostname}/${each.value.datastore_id_images}/${each.value.boot_image.file_name}"].id, each.value.boot_image.file_id, disk.value.import_from)
     }
   }
 
@@ -69,6 +69,16 @@ resource "proxmox_virtual_environment_vm" "this" {
       import_from  = disk.value.file
     }
   }
+
+  dynamic "cdrom" {
+    for_each = each.value.iso_file_id != null ? [each.value.iso_file_id] : []
+    content {
+      file_id   = cdrom.value
+      interface = "ide2"
+    }
+  }
+
+  boot_order = each.value.iso_file_id != null ? ["ide2", each.value.boot_disk.interface] : null
 
   dynamic "efi_disk" {
     for_each = each.value.efi_disk_enabled ? [1] : []
@@ -92,6 +102,14 @@ resource "proxmox_virtual_environment_vm" "this" {
     }
   }
 
+  dynamic "usb" {
+    for_each = each.value.usb_mappings
+    content {
+      mapping = usb.value
+      usb3    = true
+    }
+  }
+
   dynamic "hostpci" {
     for_each = each.value.igpu ? [1] : []
     content {
@@ -104,14 +122,19 @@ resource "proxmox_virtual_environment_vm" "this" {
   }
 
   lifecycle {
-    # The ISO file_id is only needed for initial provisioning.
     ignore_changes = [disk]
   }
 }
 
-# Download boot image per VM (only for nodes that define one)
+locals {
+  boot_image_downloads = {
+    for v in values(var.nodes) : "${v.hostname}/${v.datastore_id_images}/${v.boot_image.file_name}" => v
+    if v.boot_image != null && v.boot_image.file_id == null
+  }
+}
+
 resource "proxmox_virtual_environment_download_file" "this" {
-  for_each = { for k, v in var.nodes : k => v if v.boot_image != null }
+  for_each = local.boot_image_downloads
 
   node_name    = each.value.hostname
   content_type = "iso"
@@ -119,5 +142,10 @@ resource "proxmox_virtual_environment_download_file" "this" {
 
   file_name = each.value.boot_image.file_name
   url       = each.value.boot_image.url
-  overwrite = true
+  overwrite = false
+}
+
+moved {
+  from = proxmox_virtual_environment_download_file.this["controlplane-01"]
+  to   = proxmox_virtual_environment_download_file.this["pve1/local/talos-v1.14.1-nocloud-amd64.iso"]
 }

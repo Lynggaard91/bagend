@@ -23,7 +23,7 @@ variable "nodes" {
       enabled = bool
       trim    = bool
       }), {
-      enabled = true
+      enabled = false
       trim    = true
     })
 
@@ -33,8 +33,6 @@ variable "nodes" {
       type = "l26"
     })
 
-    # See https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_vm
-    # For specifics regarding network devices and disks.
     network_devices = optional(any, [
       { bridge = "vmbr0", firewall = null, mac_address = null, model = null, rate_limit = null, vlan_id = null }
     ])
@@ -54,11 +52,15 @@ variable "nodes" {
     extra_disks = optional(any, [])
 
     boot_image = optional(object({
-      url       = string
-      file_name = string
+      url       = optional(string)
+      file_name = optional(string)
+      file_id   = optional(string)
     }))
 
-    # Talos fields (passed through, not used by this module)
+    iso_file_id = optional(string)
+
+    usb_mappings = optional(list(string), [])
+
     machine_type   = optional(string)
     config_patches = optional(list(string), [])
 
